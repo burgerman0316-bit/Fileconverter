@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>File Converter</title>
+    <title>Advanced File Converter</title>
     <style>
+        /* Prevent scrolling and touch/overscroll behavior */
         html, body {
             height: 100%;
             overflow: hidden;
@@ -25,6 +26,7 @@
             padding-bottom: 20px;
             box-sizing: border-box;
         }
+        /* Main container */
         .converter-container {
             width: 100%;
             max-width: 600px;
@@ -32,6 +34,7 @@
             box-sizing: border-box;
             text-align: center;
         }
+        /* File input styling */
         .file-input-container {
             margin: 20px 0;
         }
@@ -47,10 +50,12 @@
             border-radius: 4px;
             cursor: pointer;
             transition: background 0.2s, color 0.2s;
+            font-family: 'Roboto', sans-serif;
         }
         .file-label:hover {
             background-color: rgba(255, 255, 255, 0.1);
         }
+        /* Format selector */
         .format-select {
             margin: 15px 0;
             padding: 10px;
@@ -68,6 +73,7 @@
             outline: none;
             border-color: #5C6AC4;
         }
+        /* Buttons */
         .convert-btn {
             margin-top: 15px;
             padding: 12px 20px;
@@ -78,10 +84,10 @@
             border-radius: 4px;
             cursor: pointer;
             font-family: 'Roboto', sans-serif;
+            transition: background 0.2s, color 0.2s;
         }
-        .result-container {
-            margin-top: 20px;
-            display: none;
+        .convert-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
         }
         .download-btn {
             margin-top: 10px;
@@ -92,7 +98,22 @@
             border-radius: 4px;
             cursor: pointer;
             font-family: 'Roboto', sans-serif;
+            transition: background 0.2s, color 0.2s;
         }
+        .download-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        /* Result container */
+        .result-container {
+            margin-top: 20px;
+            display: none;
+            padding: 15px;
+            background-color: rgba(0, 255, 0, 0.1);
+            border-radius: 4px;
+            width: 100%;
+            max-width: 600px;
+        }
+        /* File info display */
         .file-info {
             margin-top: 20px;
             padding: 15px;
@@ -112,11 +133,14 @@
         .file-size {
             opacity: 0.7;
         }
+        /* Status messages */
         .status-message {
             margin-top: 15px;
             font-style: italic;
             opacity: 0.8;
+            min-height: 20px;
         }
+        /* Progress bar */
         .progress-bar {
             width: 100%;
             height: 10px;
@@ -132,14 +156,46 @@
             background-color: #5C6AC4;
             transition: width 0.3s;
         }
+        /* Error messages */
+        .error-message {
+            color: #ff6b6b;
+            margin-top: 10px;
+            display: none;
+        }
+        /* Conversion details */
+        .conversion-details {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            font-size: 0.9em;
+            text-align: left;
+        }
+        /* Footer info */
+        .footer-info {
+            margin-top: 20px;
+            font-size: 0.8em;
+            opacity: 0.7;
+            text-align: center;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .converter-container {
+                padding: 10px;
+            }
+            .file-label, .convert-btn, .download-btn {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="converter-container">
-        <h1 style="font-size: 1.5em; font-weight: bold; margin-bottom: 5px;">File Converter</h1>
+        <h1 style="font-size: 1.5em; font-weight: bold; margin-bottom: 5px;">Advanced File Converter</h1>
         
         <div class="file-input-container">
-            <input type="file" id="fileInput" class="file-input" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.xls,.xlsx">
+            <input type="file" id="fileInput" class="file-input" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx">
             <label for="fileInput" class="file-label">Choose File</label>
         </div>
         
@@ -153,6 +209,8 @@
             <option value="txt">TXT</option>
             <option value="xls">XLS</option>
             <option value="xlsx">XLSX</option>
+            <option value="ppt">PPT</option>
+            <option value="pptx">PPTX</option>
         </select>
         
         <button id="convertBtn" class="convert-btn">Convert File</button>
@@ -163,9 +221,12 @@
         
         <div id="statusMessage" class="status-message">Ready to convert</div>
         
+        <div id="errorMessage" class="error-message"></div>
+        
         <div id="resultContainer" class="result-container">
             <p>Conversion Complete!</p>
             <a id="downloadLink" class="download-btn" download>Download Converted File</a>
+            <div id="conversionDetails" class="conversion-details"></div>
         </div>
         
         <div id="fileInfo" class="file-info">
@@ -173,10 +234,15 @@
             <div id="fileType" class="file-type">-</div>
             <div id="fileSize" class="file-size">-</div>
         </div>
+        
+        <div class="footer-info">
+            Note: This demo shows interface. Actual conversion requires server-side processing.
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
             const fileInput = document.getElementById('fileInput');
             const outputFormat = document.getElementById('outputFormat');
             const convertBtn = document.getElementById('convertBtn');
@@ -186,10 +252,14 @@
             const fileTypeElement = document.getElementById('fileType');
             const fileSizeElement = document.getElementById('fileSize');
             const statusMessage = document.getElementById('statusMessage');
+            const errorMessage = document.getElementById('errorMessage');
             const progressBar = document.querySelector('.progress-bar');
             const progressFill = document.getElementById('progressFill');
+            const conversionDetails = document.getElementById('conversionDetails');
             
+            // State variables
             let selectedFile = null;
+            let conversionStartTime = null;
             
             // Handle file selection
             fileInput.addEventListener('change', function(e) {
@@ -218,68 +288,134 @@
             // Handle conversion
             convertBtn.addEventListener('click', function() {
                 if (!selectedFile) {
-                    alert('Please select a file first');
+                    showError('Please select a file first');
                     return;
                 }
                 
                 if (!outputFormat.value) {
-                    alert('Please select an output format');
+                    showError('Please select an output format');
                     return;
                 }
+                
+                // Clear previous errors
+                hideError();
                 
                 // Start conversion process
                 startConversion();
             });
             
-            // Simulate conversion process
+            // Show error message
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                setTimeout(hideError, 5000);
+            }
+            
+            // Hide error message
+            function hideError() {
+                errorMessage.style.display = 'none';
+            }
+            
+            // Simulate conversion process with detailed steps
             function startConversion() {
                 // Reset UI
                 resultContainer.style.display = 'none';
                 statusMessage.textContent = 'Starting conversion...';
                 progressBar.style.display = 'block';
                 progressFill.style.width = '0%';
+                conversionDetails.innerHTML = '';
+                hideError();
                 
-                // Simulate progress
+                // Record start time
+                conversionStartTime = Date.now();
+                
+                // Simulate conversion progress with detailed steps
                 let progress = 0;
+                const steps = [
+                    {message: 'Reading file...', percentage: 10},
+                    {message: 'Validating file format...', percentage: 20},
+                    {message: 'Analyzing file structure...', percentage: 30},
+                    {message: 'Preparing conversion...', percentage: 40},
+                    {message: 'Processing data...', percentage: 50},
+                    {message: 'Applying format transformations...', percentage: 60},
+                    {message: 'Generating output...', percentage: 70},
+                    {message: 'Optimizing file...', percentage: 80},
+                    {message: 'Finalizing...', percentage: 90},
+                    {message: 'Complete!', percentage: 100}
+                ];
+                
+                let stepIndex = 0;
                 const interval = setInterval(() => {
-                    progress += Math.random() * 15;
+                    // Increase progress
+                    progress += Math.random() * 10 + 2;
+                    
+                    // Ensure progress doesn't exceed 100%
                     if (progress >= 100) {
                         progress = 100;
                         clearInterval(interval);
                         finishConversion();
                     }
+                    
+                    // Update progress bar
                     progressFill.style.width = progress + '%';
                     
-                    // Update status messages
-                    if (progress < 30) {
-                        statusMessage.textContent = 'Reading file...';
-                    } else if (progress < 60) {
-                        statusMessage.textContent = 'Processing data...';
-                    } else if (progress < 90) {
-                        statusMessage.textContent = 'Generating output...';
-                    } else {
-                        statusMessage.textContent = 'Finalizing...';
+                    // Update status message based on progress
+                    if (stepIndex < steps.length && progress >= steps[stepIndex].percentage) {
+                        statusMessage.textContent = steps[stepIndex].message;
+                        stepIndex++;
                     }
-                }, 200);
+                    
+                    // Update conversion details periodically
+                    if (Math.floor(progress) % 10 === 0) {
+                        updateConversionDetails(progress);
+                    }
+                }, 150);
+            }
+            
+            // Update conversion details display
+            function updateConversionDetails(progress) {
+                const elapsed = Date.now() - conversionStartTime;
+                const elapsedSeconds = Math.floor(elapsed / 1000);
+                
+                conversionDetails.innerHTML = `
+                    <strong>Conversion Progress:</strong> ${Math.round(progress)}%<br>
+                    <strong>Elapsed Time:</strong> ${elapsedSeconds}s<br>
+                    <strong>Original File:</strong> ${selectedFile ? selectedFile.name : 'N/A'}<br>
+                    <strong>Target Format:</strong> ${outputFormat.value.toUpperCase()}<br>
+                `;
             }
             
             // Finish conversion
             function finishConversion() {
+                const elapsed = Date.now() - conversionStartTime;
+                const elapsedSeconds = Math.floor(elapsed / 1000);
+                
                 statusMessage.textContent = 'Conversion complete!';
                 
-                // Create mock converted file for demonstration
+                // Create mock converted file
                 const fileName = selectedFile.name.split('.')[0];
                 const extension = outputFormat.value;
                 const convertedFileName = `${fileName}.${extension}`;
                 
-                // Create a mock blob with conversion details
-                const mockContent = `Converted file: ${convertedFileName}\n\nOriginal file: ${selectedFile.name}\n\nFormat changed from ${getFileExtension(selectedFile.name)} to ${extension}\n\nFile size: ${formatFileSize(selectedFile.size)}\n\nConversion completed at: ${new Date().toLocaleString()}`;
+                // Create a detailed mock blob with conversion information
+                const mockContent = `File Conversion Report\n=====================\n\nConverted file: ${convertedFileName}\nOriginal file: ${selectedFile.name}\n\nFormat changed from ${getFileExtension(selectedFile.name)} to ${extension}\n\nFile size: ${formatFileSize(selectedFile.size)}\n\nConversion completed at: ${new Date().toLocaleString()}\nElapsed time: ${elapsedSeconds} seconds\n\nConversion Details:\n- File validation: Passed\n- Format analysis: Completed\n- Data processing: Successful\n- Output generation: Completed\n\nThis file was generated by the Advanced File Converter.`;
+                
                 const blob = new Blob([mockContent], {type: 'text/plain'});
                 
                 // Set up download link
                 const url = URL.createObjectURL(blob);
                 downloadLink.href = url;
                 downloadLink.download = convertedFileName;
+                
+                // Update conversion details
+                conversionDetails.innerHTML = `
+                    <strong>Conversion Summary:</strong><br>
+                    <strong>File:</strong> ${convertedFileName}<br>
+                    <strong>Original:</strong> ${selectedFile.name}<br>
+                    <strong>Format:</strong> ${extension.toUpperCase()}<br>
+                    <strong>Size:</strong> ${formatFileSize(selectedFile.size)}<br>
+                    <strong>Duration:</strong> ${elapsedSeconds} seconds<br>
+                `;
                 
                 // Show result
                 resultContainer.style.display = 'block';
@@ -290,6 +426,9 @@
             function getFileExtension(filename) {
                 return filename.split('.').pop().toUpperCase();
             }
+            
+            // Initialize with sample file info
+            updateFileInfo({name: 'sample.pdf', type: 'application/pdf', size: 1024000});
         });
     </script>
 </body>
