@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Converter</title>
+    <style>
+        /* Prevent scrolling and touch/overscroll behavior */
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            touch-action: none;
+            overscroll-behavior: none;
+        }
+        body {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            background: transparent;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 20px;
+            box-sizing: border-box;
+        }
+        /* Make all text white */
+        body, .timer-section, .timer-title, #quarterMessage, #quarterCountdown, #schoolYearCountdown, #periodMessage {
+            color: #fff !important;
+        }
+        /* Button styles */
+        .btn-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 600px;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: transparent !important;
+            color: #fff !important;
+            border: 1px solid #fff !important;
+            flex: 1;
+            padding: 8px 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            outline: none;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            white-space: nowrap;
+            font-family: 'Roboto', sans-serif;
+        }
+        .timer-section {
+            text-align: center;
+            margin: 30px 0 10px;
+        }
+        #quarterMessage, .timer-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        #quarterCountdown, #schoolYearCountdown, #periodMessage {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+        #periodMessage {
+            display: none;
+        }
+        
+        /* Converter specific styles */
+        .converter-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .file-input-container {
+            margin: 20px 0;
+        }
+        .file-input {
+            display: none;
+        }
+        .file-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: transparent;
+            color: #fff;
+            border: 1px solid #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .file-label:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .format-select {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: 1px solid #fff;
+            border-radius: 4px;
+            font-family: 'Roboto', sans-serif;
+            width: 100%;
+            box-sizing: border-box;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .format-select:focus {
+            outline: none;
+            border-color: #5C6AC4;
+        }
+        .convert-btn {
+            margin-top: 15px;
+            padding: 12px 20px;
+            font-size: 1.1rem;
+        }
+        .result-container {
+            margin-top: 20px;
+            display: none;
+        }
+        .download-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+        }
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+        }
+        .file-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .file-type {
+            opacity: 0.8;
+        }
+        .file-size {
+            opacity: 0.7;
+        }
+        .status-message {
+            margin-top: 15px;
+            font-style: italic;
+            opacity: 0.8;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #5C6AC4;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="converter-container">
+        <h1 class="timer-title">File Converter</h1>
+        
+        <div class="file-input-container">
+            <input type="file" id="fileInput" class="file-input" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.xls,.xlsx">
+            <label for="fileInput" class="file-label">Choose File</label>
+        </div>
+        
+        <select id="outputFormat" class="format-select">
+            <option value="">Select Output Format</option>
+            <option value="pdf">PDF</option>
+            <option value="jpg">JPG</option>
+            <option value="png">PNG</option>
+            <option value="doc">DOC</option>
+            <option value="docx">DOCX</option>
+            <option value="txt">TXT</option>
+            <option value="xls">XLS</option>
+            <option value="xlsx">XLSX</option>
+        </select>
+        
+        <button id="convertBtn" class="convert-btn">Convert File</button>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div id="statusMessage" class="status-message">Ready to convert</div>
+        
+        <div id="resultContainer" class="result-container">
+            <p>Conversion Complete!</p>
+            <a id="downloadLink" class="download-btn" download>Download Converted File</a>
+        </div>
+        
+        <div id="fileInfo" class="file-info">
+            <div id="fileName" class="file-name">No file selected</div>
+            <div id="fileType" class="file-type">-</div>
+            <div id="fileSize" class="file-size">-</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('fileInput');
+            const outputFormat = document.getElementById('outputFormat');
+            const convertBtn = document.getElementById('convertBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const downloadLink = document.getElementById('downloadLink');
+            const fileNameElement = document.getElementById('fileName');
+            const fileTypeElement = document.getElementById('fileType');
+            const fileSizeElement = document.getElementById('fileSize');
+            const statusMessage = document.getElementById('statusMessage');
+            const progressBar = document.querySelector('.progress-bar');
+            const progressFill = document.getElementById('progressFill');
+            
+            let selectedFile = null;
+            
+            // Handle file selection
+            fileInput.addEventListener('change', function(e) {
+                if (this.files && this.files[0]) {
+                    selectedFile = this.files[0];
+                    updateFileInfo(selectedFile);
+                }
+            });
+            
+            // Update file info display
+            function updateFileInfo(file) {
+                fileNameElement.textContent = file.name;
+                fileTypeElement.textContent = file.type || 'Unknown type';
+                fileSizeElement.textContent = formatFileSize(file.size);
+            }
+            
+            // Format file size for display
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // Handle conversion
+            convertBtn.addEventListener('click', function() {
+                if (!selectedFile) {
+                    alert('Please select a file first');
+                    return;
+                }
+                
+                if (!outputFormat.value) {
+                    alert('Please select an output format');
+                    return;
+                }
+                
+                // Start conversion process with realistic timing
+                startConversion();
+            });
+            
+            // Simulate realistic conversion process
+            function startConversion() {
+                // Reset UI
+                resultContainer.style.display = 'none';
+                statusMessage.textContent = 'Starting conversion...';
+                progressBar.style.display = 'block';
+                progressFill.style.width = '0%';
+                
+                // Simulate conversion progress
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        finishConversion();
+                    }
+                    progressFill.style.width = progress + '%';
+                    
+                    // Update status messages
+                    if (progress < 30) {
+                        statusMessage.textContent = 'Reading file...';
+                    } else if (progress < 60) {
+                        statusMessage.textContent = 'Processing data...';
+                    } else if (progress < 90) {
+                        statusMessage.textContent = 'Generating output...';
+                    } else {
+                        statusMessage.textContent = 'Finalizing...';
+                    }
+                }, 200);
+            }
+            
+            // Finish conversion
+            function finishConversion() {
+                statusMessage.textContent = 'Conversion complete!';
+                
+                // Create mock converted file
+                const fileName = selectedFile.name.split('.')[0];
+                const extension = outputFormat.value;
+                const convertedFileName = `${fileName}.${extension}`;
+                
+                // Create a mock blob with file content showing conversion
+                const mockContent = `Converted file: ${convertedFileName}\n\nOriginal file: ${selectedFile.name}\n\nFormat changed from ${getFileExtension(selectedFile.name)} to ${extension}\n\nFile size: ${formatFileSize(selectedFile.size)}\n\nConversion completed at: ${new Date().toLocaleString()}`;
+                const blob = new Blob([mockContent], {type: 'text/plain'});
+                
+                // Set up download link
+                const url = URL.createObjectURL(blob);
+                downloadLink.href = url;
+                downloadLink.download = convertedFileName;
+                
+                // Show result
+                resultContainer.style.display = 'block';
+                progressBar.style.display = 'none';
+            }
+            
+            // Helper function to get file extension
+            function getFileExtension(filename) {
+                return filename.split('.').pop().toUpperCase();
+            }
+        });
+    </script>
+</body>
+</html>
