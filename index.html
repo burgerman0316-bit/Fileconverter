@@ -3,76 +3,28 @@
 <head>
     <title>File Converter</title>
     <style>
-        /* Prevent scrolling and touch/overscroll behavior */
         html, body {
             height: 100%;
             overflow: hidden;
             touch-action: none;
             overscroll-behavior: none;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background: transparent;
+            color: #fff;
         }
         body {
             position: fixed;
             inset: 0;
             width: 100%;
             height: 100%;
-            margin: 0;
-            background: transparent;
-            font-family: 'Roboto', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding-bottom: 20px;
             box-sizing: border-box;
         }
-        /* Make all text white */
-        body, .timer-section, .timer-title, #quarterMessage, #quarterCountdown, #schoolYearCountdown, #periodMessage {
-            color: #fff !important;
-        }
-        /* Button styles */
-        .btn-container {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            max-width: 600px;
-            padding: 0 10px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: transparent !important;
-            color: #fff !important;
-            border: 1px solid #fff !important;
-            flex: 1;
-            padding: 8px 10px;
-            font-size: 1rem;
-            cursor: pointer;
-            border-radius: 4px;
-            outline: none;
-            transition: background 0.2s, color 0.2s, border-color 0.2s;
-            white-space: nowrap;
-            font-family: 'Roboto', sans-serif;
-        }
-        .timer-section {
-            text-align: center;
-            margin: 30px 0 10px;
-        }
-        #quarterMessage, .timer-title {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        #quarterCountdown, #schoolYearCountdown, #periodMessage {
-            font-size: 3em;
-            font-weight: bold;
-            margin: 0;
-            font-family: 'Roboto', sans-serif;
-        }
-        #periodMessage {
-            display: none;
-        }
-        
-        /* Converter specific styles */
         .converter-container {
             width: 100%;
             max-width: 600px;
@@ -120,6 +72,12 @@
             margin-top: 15px;
             padding: 12px 20px;
             font-size: 1.1rem;
+            background-color: transparent;
+            color: #fff;
+            border: 1px solid #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
         }
         .result-container {
             margin-top: 20px;
@@ -128,6 +86,12 @@
         .download-btn {
             margin-top: 10px;
             padding: 10px 20px;
+            background-color: transparent;
+            color: #fff;
+            border: 1px solid #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
         }
         .file-info {
             margin-top: 20px;
@@ -172,7 +136,7 @@
 </head>
 <body>
     <div class="converter-container">
-        <h1 class="timer-title">File Converter</h1>
+        <h1 style="font-size: 1.5em; font-weight: bold; margin-bottom: 5px;">File Converter</h1>
         
         <div class="file-input-container">
             <input type="file" id="fileInput" class="file-input" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.xls,.xlsx">
@@ -263,11 +227,11 @@
                     return;
                 }
                 
-                // Start conversion process with realistic timing
+                // Start conversion process
                 startConversion();
             });
             
-            // Simulate realistic conversion process
+            // Simulate conversion process
             function startConversion() {
                 // Reset UI
                 resultContainer.style.display = 'none';
@@ -275,7 +239,7 @@
                 progressBar.style.display = 'block';
                 progressFill.style.width = '0%';
                 
-                // Simulate conversion progress
+                // Simulate progress
                 let progress = 0;
                 const interval = setInterval(() => {
                     progress += Math.random() * 15;
@@ -303,12 +267,12 @@
             function finishConversion() {
                 statusMessage.textContent = 'Conversion complete!';
                 
-                // Create mock converted file
+                // Create mock converted file for demonstration
                 const fileName = selectedFile.name.split('.')[0];
                 const extension = outputFormat.value;
                 const convertedFileName = `${fileName}.${extension}`;
                 
-                // Create a mock blob with file content showing conversion
+                // Create a mock blob with conversion details
                 const mockContent = `Converted file: ${convertedFileName}\n\nOriginal file: ${selectedFile.name}\n\nFormat changed from ${getFileExtension(selectedFile.name)} to ${extension}\n\nFile size: ${formatFileSize(selectedFile.size)}\n\nConversion completed at: ${new Date().toLocaleString()}`;
                 const blob = new Blob([mockContent], {type: 'text/plain'});
                 
